@@ -31,17 +31,20 @@ public class ConsumerService {
     public String question;
 
     @KafkaListener(topics = "question-messages", groupId = "question-group")
-    public List<Answers> consume(String message){
+    public List<Answers> consume(String message) {
 
         System.out.println("Consumed message : " + message);
         logger.info("&&& Message [{}] consumed", message);
-        System.out.println("Wrote from kafka method " + message);
 
         String currentMessage = message;
+        int lengthOfList = searchDB(currentMessage).size();
+        System.out.println(lengthOfList);
 
-        for (int i = 0; i < searchDB(currentMessage).size(); i++){
-            System.out.println(searchDB(currentMessage).get(i));
+
+        for (int i = 0; i < lengthOfList; i++) {
+            System.out.println("From kafka listener : " + searchDB(currentMessage).get(i));
             producerService.sendMessage(searchDB(currentMessage).get(i).toString());
+
         }
 
         return searchDB(currentMessage);
@@ -55,19 +58,17 @@ public class ConsumerService {
 
         List<String> splitWord = Arrays.asList(question.split(" "));
         List<Answers> similarQuestions = new ArrayList<Answers>();
-        System.out.println(myList);
         System.out.println("Wrote from searchDB method " + question);
+
 
         for (int j = 0; j < splitWord.size(); j++) {
             for (int i = 0; i < myList.size(); i++) {
                 if (myList.get(i).getQuestion().contains(splitWord.get(j))) {
-                    System.out.println(myList.get(i));
                     similarQuestions.add(myList.get(i));
+
                 }
             }
         }
-
         return similarQuestions;
     }
-
 }
