@@ -17,7 +17,4 @@ public class Answers {
     private String question;
     private String answer;
 
-   // public Answers() {
-    //    super();
-   // }
 }

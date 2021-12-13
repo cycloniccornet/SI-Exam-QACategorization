@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import siexamqacategorization.ProducerService;
 import siexamqacategorization.model.Answers;
 import siexamqacategorization.repository.AnswerRepository;
 
@@ -19,6 +20,9 @@ public class ConsumerService {
     @Autowired
     AnswerRepository answerRepository;
 
+    @Autowired
+    ProducerService producerService;
+
 
     //Get logger
     private static final Logger logger = LoggerFactory.getLogger(ConsumerService.class);
@@ -27,34 +31,40 @@ public class ConsumerService {
     public String question;
 
     @KafkaListener(topics = "question-messages", groupId = "question-group")
-    public void consume(String message) throws IOException {
-
+    public List<?> consume(String message) throws IOException {
 
         System.out.println("Consumed message : " + message);
         logger.info("&&& Message [{}] consumed", message);
         System.out.println("Wrote from kafka method " + message);
-        searchDB(message);
+
+        for (int i = 0; i < searchDB(message).size(); i++){
+            System.out.println(searchDB(message).get(i));
+            producerService.sendMessage((String) searchDB(message).get(i));
+        }
+
+        return searchDB(message);
     }
 
     // List of all questions
-    public void searchDB(String question) {
+    public List<?> searchDB(String question) {
+
         List<Answers> myList = answerRepository.findAll();
         // List for similar questions to the one which has been asked
 
         List<String> splitWord = Arrays.asList(question.split(" "));
-        List<Answers> arr = new ArrayList<Answers>();
+        List<Answers> similarQuestions = new ArrayList<Answers>();
         System.out.println(myList);
         System.out.println("Wrote from searchDB method " + question);
 
-        for (int j = 0; j < splitWord.size(); j++) {
-            for (int i = 0; i < myList.size(); i++) {
-                if (myList.get(i).getQuestion().contains(splitWord.get(j))) {
-                    System.out.println(myList.get(i));
-                    arr.add(myList.get(i));
+        for (String s : splitWord) {
+            for (Answers answers : myList) {
+                if (answers.getQuestion().contains(s)) {
+                    System.out.println(answers);
+                    similarQuestions.add(answers);
                 }
-                //System.out.println(arr);
             }
         }
+        return similarQuestions;
     }
 
 }
