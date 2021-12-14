@@ -13,7 +13,6 @@ import siexamqacategorization.repository.AnswerRepository;
 import siexamqacategorization.model.Answers;
 
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
