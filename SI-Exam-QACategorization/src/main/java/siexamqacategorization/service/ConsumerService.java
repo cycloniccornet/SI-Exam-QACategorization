@@ -58,12 +58,16 @@ public class ConsumerService {
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
             message = new String(delivery.getBody(), "UTF-8");
             logger.info("Message in RabbitMQ from QACamunda is : " + delivery.getEnvelope().getRoutingKey() + "':'" + message);
-            logMessage(message);
+            try {
+                logMessage(message);
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
         };
         channel.basicConsume(queueName, true, deliverCallback, consumerTag -> { });
     }
 
-    private void logMessage(String message) {
+    private void logMessage(String message) throws Exception {
         if (searchDB(message).size() > 1) {
             for (int i = 0; i < searchDB(message).size(); i++) {
                 logger.info("From logMessage in consumer  : " + searchDB(message).get(i));
@@ -74,7 +78,8 @@ public class ConsumerService {
                 }
             }
         } else if (searchDB(message).size() < 1) {
-            System.out.println("Doesn't have answers :" + message);
+            producerService.createQueue("Doesn't have answers");
+            System.out.println("Doesn't have answers");
         }
 
     }
